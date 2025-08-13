@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Vishwakarma - Professional Video Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #FFD700;
+            --teal: #00BFA6;
+            --dark-bg: #0E0E0E;
+            --text-light: #FFFFFF;
+            --text-gray: #B0B0B0;
+            --ease: cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Fix video scrolling */
+        video {
+            pointer-events: auto;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: rgb(255, 255, 255);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.hover {
+            transform: scale(2);
+            background: var(--gold);
+            mix-blend-mode: normal;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s var(--ease);
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .preloader-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 20px var(--gold);
+            opacity: 0;
+            animation: fadeInOut 2.5s var(--ease) forwards;
+        }
+
+        .preloader-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s var(--ease) 1.5s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: transparent;
+            transition: all 0.3s var(--ease);
+            z-index: 1000;
+        }
+
+        .navbar.scrolled {
+            background: rgba(14, 14, 14, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            position: relative;
+            transition: color 0.3s var(--ease);
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s var(--ease);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--dark-bg), #1a1a1a);
+            opacity: 0.8;
+        }
+
+        /* Video Transition Effects */
+        .video-transition {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000, #1a1a1a, #000);
+            background-size: 400% 400%;
+            animation: videoSweep 8s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes videoSweep {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .film-grain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, transparent 50%, rgba(255,255,255,0.01) 50.1%),
+                radial-gradient(circle at 80% 20%, transparent 50%, rgba(255,255,255,0.01) 50.1%);
+            background-size: 3px 3px;
+            animation: grain 0.2s steps(10) infinite;
+            pointer-events: none;
+        }
+
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1px, -1px); }
+            20% { transform: translate(1px, -1px); }
+            30% { transform: translate(-1px, 1px); }
+            40% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, 0); }
+            60% { transform: translate(1px, 0); }
+            70% { transform: translate(0, -1px); }
+            80% { transform: translate(0, 1px); }
+            90% { transform: translate(-1px, -1px); }
+        }
+
+        .cinematic-bars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cinematic-bars::before,
+        .cinematic-bars::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to bottom, #000, transparent);
+            z-index: 2;
+        }
+
+        .cinematic-bars::before {
+            top: 0;
+        }
+
+        .cinematic-bars::after {
+            bottom: 0;
+            transform: rotate(180deg);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateX(-50px);
+            animation: slideInLeft 1s var(--ease) 3s forwards;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideUp 0.8s var(--ease) 3.5s forwards;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeIn 0.8s var(--ease) 4s forwards;
+        }
+
+        .cta-button:hover {
+            background: var(--gold);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px var(--gold);
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s var(--ease);
+        }
+
+        .section-title.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--gold);
+            transition: width 0.8s var(--ease) 0.3s;
+        }
+
+        .section-title.animate::after {
+            width: 100px;
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .profile-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--gold), var(--teal));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--dark-bg);
+            transform: scale(0);
+            transition: transform 0.8s var(--ease);
+        }
+
+        .profile-image.animate {
+            transform: scale(1);
+        }
+
+        .about-text {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s var(--ease) 0.3s;
+        }
+
+        .about-text.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Portfolio Section */
+        .portfolio-filters {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--text-gray);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 280px);
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .portfolio-item {
+            position: relative;
+            aspect-ratio: 9/16;
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s var(--ease);
+            opacity: 0;
+            transform: translateY(30px);
+            width: 280px;
+            height: 497px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .portfolio-item.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .portfolio-item:hover {
+            transform: scale(1.05);
+        }
+
+        .portfolio-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            border-radius: 15px;
+            pointer-events: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            display: block;
+        }
+
+        .portfolio-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s var(--ease);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .portfolio-item:hover .portfolio-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .portfolio-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .portfolio-category {
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .play-icon {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s var(--ease);
+        }
+
+        .portfolio-item:hover .play-icon {
+            background: var(--gold);
+            color: var(--dark-bg);
+        }
+
+        /* Services Section */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s var(--ease);
+            opacity: 0;
+            transform: translateY(30px);
+            border: 1px solid transparent;
+        }
+
+        .service-card.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            border-color: var(--gold);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--dark-bg);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Skills Section */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .skill {
+            margin-bottom: 2rem;
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-name {
+            font-weight: 600;
+        }
+
+        .skill-percentage {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .skill-bar {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--teal));
+            width: 0;
+            transition: width 1.5s var(--ease);
+            border-radius: 4px;
+        }
+
+        /* Contact Section */
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s var(--ease);
+        }
+
+        .form-group.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-gray);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: var(--text-light);
+            border-radius: 5px;
+            transition: border-color 0.3s var(--ease);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gold);
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            background: #e6c200;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            background: #0a0a0a;
+            padding: 3rem 2rem 1rem;
+            text-align: center;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            background: #1a1a1a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s var(--ease);
+        }
+
+        .social-link:hover {
+            background: var(--gold);
+            color: var(--dark-bg);
+            transform: translateY(-5px);
+        }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s var(--ease);
+            z-index: 1000;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-top:hover {
+            background: #e6c200;
+            transform: translateY(-5px);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease);
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .profile-image {
+                width: 200px;
+                height: 200px;
+                margin: 0 auto;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+            
+            .portfolio-grid {
+                grid-template-columns: repeat(auto-fit, 250px);
+                gap: 1.5rem;
+            }
+            
+            .portfolio-item {
+                width: 250px;
+                height: 444px;
+            }
+        }
+
+        /* Zoom level adjustments */
+        @media (min-width: 1200px) {
+            .portfolio-grid {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .portfolio-grid {
+                grid-template-columns: repeat(auto-fit, 300px);
+                gap: 2.5rem;
+            }
+            
+            .portfolio-item {
+                width: 300px;
+                height: 533px;
+            }
+        }
+
+        /* Video Editing Features */
+        .editing-features {
+            margin: 2rem 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid var(--gold);
+            transition: all 0.3s var(--ease);
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Testimonials */
+        .testimonials-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .testimonial {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.8s var(--ease);
+        }
+
+        .testimonial.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .testimonial-content {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .stars {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .testimonial p {
+            font-style: italic;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .client-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            color: var(--dark-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .client-info h4 {
+            margin: 0;
+            color: var(--gold);
+        }
+
+        .client-info span {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .testimonial-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--text-gray);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+        }
+
+        .nav-dot.active,
+        .nav-dot:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        /* Enhanced Contact Section */
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .contact-info h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .contact-details {
+            margin: 2rem 0;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 10px;
+            transition: all 0.3s var(--ease);
+        }
+
+        .contact-item:hover {
+            background: #222;
+            transform: translateX(5px);
+        }
+
+        .contact-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .contact-item h4 {
+            margin: 0 0 0.25rem 0;
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .contact-item a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s var(--ease);
+        }
+
+        .contact-item a:hover {
+            color: var(--gold);
+        }
+
+        .why-choose-me {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 191, 166, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid var(--teal);
+        }
+
+        .why-choose-me h4 {
+            color: var(--teal);
+            margin-bottom: 1rem;
+        }
+
+        .why-choose-me ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .why-choose-me li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .contact-form {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .contact-form select {
+            width: 100%;
+            padding: 1rem;
+            background: #0E0E0E;
+            border: 1px solid #333;
+            color: var(--text-light);
+            border-radius: 5px;
+            transition: border-color 0.3s var(--ease);
+        }
+
+        .contact-form select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .form-note {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        /* Animation delays for staggered effects */
+        .service-card:nth-child(1) { transition-delay: 0.1s; }
+        .service-card:nth-child(2) { transition-delay: 0.2s; }
+        .service-card:nth-child(3) { transition-delay: 0.3s; }
+        .service-card:nth-child(4) { transition-delay: 0.4s; }
+
+        .portfolio-item:nth-child(1) { transition-delay: 0.1s; }
+        .portfolio-item:nth-child(2) { transition-delay: 0.2s; }
+        .portfolio-item:nth-child(3) { transition-delay: 0.3s; }
+        .portfolio-item:nth-child(4) { transition-delay: 0.4s; }
+        .portfolio-item:nth-child(5) { transition-delay: 0.5s; }
+        .portfolio-item:nth-child(6) { transition-delay: 0.6s; }
+
+        .form-group:nth-child(1) { transition-delay: 0.1s; }
+        .form-group:nth-child(2) { transition-delay: 0.2s; }
+        .form-group:nth-child(3) { transition-delay: 0.3s; }
+        .form-group:nth-child(4) { transition-delay: 0.4s; }
+
+        /* Responsive Updates */
+        @media (max-width: 768px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .testimonials-container {
+                height: auto;
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-text">Dev Vishwakarma</div>
+        <div class="preloader-subtitle">Professional Video Editor</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-content">
+            <a href="#" class="logo">DV</a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#portfolio">Portfolio</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#testimonials">Reviews</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="video-transition"></div>
+        <div class="film-grain"></div>
+        <div class="cinematic-bars"></div>
+        <div class="particles" id="particles"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Dev Vishwakarma</h1>
+            <p class="hero-subtitle">Professional Video Editor</p>
+            <a href="#portfolio" class="cta-button">View My Work</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <h2 class="section-title">About Me</h2>
+        <div class="about-content">
+            <div class="profile-image">DV</div>
+            <div class="about-text">
+                <p>With 5 years of experience in CapCut and 1 year mastering DaVinci Resolve, I bring stories to life through cinematic video editing. I've had the privilege of working with E-Cell RGPV and 3 professional clients, creating compelling content across various genres.</p>
+                <p>My expertise spans promotional reels, tech videos, educational content, personal vlogs, and short films. I believe every frame tells a story, and I'm passionate about crafting visual narratives that captivate and inspire.</p>
+                
+                <!-- Professional Video Editing Features -->
+                <div class="editing-features">
+                    <h3 style="color: var(--gold); margin: 2rem 0 1rem 0;">Professional Video Editing Services</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <span class="feature-icon">🎨</span>
+                            <span>Color Grading & Correction</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🔊</span>
+                            <span>Audio Mixing & Mastering</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✨</span>
+                            <span>Motion Graphics & VFX</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🎬</span>
+                            <span>Cinematic Transitions</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📱</span>
+                            <span>Multi-Platform Optimization</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <span>Fast Turnaround Time</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number" data-target="5">0</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="3">0</span>
+                        <span class="stat-label">Professional Clients</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="50">0</span>
+                        <span class="stat-label">Projects Completed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="24">0</span>
+                        <span class="stat-label">Hour Delivery</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section class="section" id="portfolio">
+        <h2 class="section-title">Portfolio</h2>
+        <div class="portfolio-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="promotional">Promotional</button>
+            <button class="filter-btn" data-filter="tech">Tech</button>
+            <button class="filter-btn" data-filter="educational">Educational</button>
+            <button class="filter-btn" data-filter="personal">Personal</button>
+            <button class="filter-btn" data-filter="short-film">Short Film</button>
+        </div>
+        <div class="portfolio-grid">
+            <div class="portfolio-item" data-category="promotional">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://www.dropbox.com/scl/fi/cl3xrrnetresutz53csa2/1013-1.mp4?rlkey=ih4u2dh06lucvsupy00nyifpf&st=1pcwwxwc&raw=1" type="video/mp4">
+                </video>
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">Brand Promotional Reel</h3>
+                    <p class="portfolio-category">Promotional</p>
+                </div>
+            </div>
+            <div class="portfolio-item" data-category="tech">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://www.dropbox.com/scl/fi/9lw0dglbks6lxaz7v6s73/0813.mp4?rlkey=3fh2725cr5nbdzkp640t62u23&st=bz4zrw0i&raw=1" type="video/mp4">
+                </video>
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">Tech Product Launch</h3>
+                    <p class="portfolio-category">Tech</p>
+                </div>
+            </div>
+            <div class="portfolio-item" data-category="educational">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://www.dropbox.com/scl/fi/5keu03razfjbw8a78aqg8/1111.mp4?rlkey=haq1lpgeswv7nitosf6y6k49k&st=b5cnxqup&raw=1" type="video/mp4">
+                </video>
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">Educational Series</h3>
+                    <p class="portfolio-category">Educational</p>
+                </div>
+            </div>
+            <div class="portfolio-item" data-category="personal">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://www.dropbox.com/scl/fi/5uix3wwtx75m684a9slvg/1122.mp4?rlkey=dceku13mkei0rgy3eynvp3cnh&st=ffshcet0&raw=1" type="video/mp4">
+                </video>
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">Personal Vlog</h3>
+                    <p class="portfolio-category">Personal</p>
+                </div>
+            </div>
+            <div class="portfolio-item" data-category="short-film">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://www.dropbox.com/scl/fi/jvhvtjcenec1koej5p0kd/1127.mp4?rlkey=r78mwik8vbfr2z0hl8o55fhb6&st=iyet8jti&raw=1" type="video/mp4">
+                </video>
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">Short Film Project</h3>
+                    <p class="portfolio-category">Short Film</p>
+                </div>
+            </div>
+            <div class="portfolio-item" data-category="promotional">
+                <video muted loop controlsList="nodownload">
+                    <source src="https://ucb117cca46fc501e2f2f71f9c75.dl.dropboxusercontent.com/cd/0/inline/CvVyc13i5TA_EjqNmt-9IwEyPOhKu6-VqneZngRVnAIU5yzDNwkKNow32jKKfTpyY6orGoqvXgr79XCp--QSiRknXCboQTuYhBoCmTKQwagiCmZquisNA9DXzWBfAEgRN14Y4o6isYUdXB101YvG0dwT/file#" type="video/mp4">
+                <div class="portfolio-overlay">
+                    <div class="play-icon">▶</div>
+                    <h3 class="portfolio-title">E-Cell RGPV Campaign</h3>
+                    <p class="portfolio-category">Promotional</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section" id="services">
+        <h2 class="section-title">Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🎬</div>
+                <h3>Promotional Reels</h3>
+                <p>Eye-catching promotional content that drives engagement and showcases your brand's unique story.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">💻</div>
+                <h3>Tech Videos</h3>
+                <p>Professional tech content including product demos, tutorials, and launch videos.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📚</div>
+                <h3>Educational Content</h3>
+                <p>Informative and engaging educational videos that make complex topics accessible.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🎭</div>
+                <h3>Short Films</h3>
+                <p>Cinematic storytelling with professional editing, color grading, and sound design.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="section" id="skills">
+        <h2 class="section-title">Skills & Tools</h2>
+        <div class="skills-grid">
+            <div>
+                <div class="skill">
+                    <div class="skill-header">
+                        <span class="skill-name">CapCut</span>
+                        <span class="skill-percentage">95%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="95"></div>
+                    </div>
+                </div>
+                <div class="skill">
+                    <div class="skill-header">
+                        <span class="skill-name">DaVinci Resolve</span>
+                        <span class="skill-percentage">85%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="85"></div>
+                    </div>
+                </div>
+                <div class="skill">
+                    <div class="skill-header">
+                        <span class="skill-name">Adobe Premiere</span>
+                        <span class="skill-percentage">70%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="70"></div>
+                    </div>
+                </div>
+                <div class="skill">
+                    <div class="skill-header">
+                        <span class="skill-name">After Effects</span>
+                         <span class="skill-percentage">60%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" data-width="60"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section" id="testimonials">
+        <h2 class="section-title">Client Testimonials</h2>
+        <div class="testimonials-container">
+            <div class="testimonial active">
+                <div class="testimonial-content">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p>"Dev's video editing skills are exceptional! He transformed our promotional content into cinematic masterpieces. The attention to detail and creative transitions made our brand stand out in the entrepreneurship community."</p>
+                    <div class="client-info">
+                        <div class="client-avatar">EC</div>
+                        <div>
+                            <h4>E-Cell RGPV</h4>
+                            <span>Entrepreneurship Cell</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <div class="testimonial-content">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p>"Professional, creative, and delivers on time! Dev's color grading and audio mixing skills brought our educational content to life. His work helped us engage students better with high-quality video content."</p>
+                    <div class="client-info">
+                        <div class="client-avatar">CC</div>
+                        <div>
+                             <h4>Code Cult</h4>
+                            <span>Online Education Platform - RGPV</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <div class="testimonial-content">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p>"Amazing work on our educational series! Dev understood our vision perfectly and created engaging content that resonated with our audience. The motion graphics were outstanding!"</p>
+                    <div class="client-info">
+                        <div class="client-avatar">LE</div>
+                        <div>
+                            <h4>Learning Edge</h4>
+                            <span>Educational Platform</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-nav">
+            <button class="nav-dot active" data-slide="0"></button>
+            <button class="nav-dot" data-slide="1"></button>
+            <button class="nav-dot" data-slide="2"></button>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section" id="contact">
+        <h2 class="section-title">Get In Touch</h2>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>Let's Create Something Amazing Together</h3>
+                <p>Ready to bring your vision to life? I'm here to help you create stunning video content that engages your audience and tells your story.</p>
+                
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <div>
+                            <h4>Phone</h4>
+                            <a href="tel:+918817712216">+91 8817712216</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <div>
+                            <h4>Email</h4>
+                            <a href="mailto:devvishwakarma010@gmail.com">devvishwakarma010@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">⏰</span>
+                        <div>
+                            <h4>Response Time</h4>
+                            <span>Within 2-4 hours</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">💰</span>
+                        <div>
+                            <h4>Pricing</h4>
+                            <span>Based on work complexity</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="why-choose-me">
+                    <h4>Why Choose Me?</h4>
+                    <ul>
+                        <li>✅ 5+ Years of Professional Experience</li>
+                        <li>✅ Fast 24-48 Hour Turnaround</li>
+                        <li>✅ Unlimited Revisions Until Satisfied</li>
+                        <li>✅ Multi-Platform Optimization</li>
+                        <li>✅ Competitive Pricing</li>
+                        <li>✅ Direct Communication</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <form class="contact-form" id="contactForm">
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+91 XXXXX XXXXX">
+                </div>
+                <div class="form-group">
+                    <label for="project">Project Type *</label>
+                    <select id="project" name="project" required>
+                        <option value="">Select Project Type</option>
+                        <option value="promotional">Promotional Reel</option>
+                        <option value="tech">Tech Video</option>
+                        <option value="educational">Educational Content</option>
+                        <option value="personal">Personal Vlog</option>
+                        <option value="short-film">Short Film</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Budget Range</label>
+                    <select id="budget" name="budget">
+                        <option value="">Select Budget</option>
+                        <option value="500-1000">₹500 - ₹1,000</option>
+                        <option value="1000-2500">₹1,000 - ₹2,500</option>
+                        <option value="2500-5000">₹2,500 - ₹5,000</option>
+                        <option value="5000+">₹5,000+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="timeline">Project Timeline</label>
+                    <select id="timeline" name="timeline">
+                        <option value="">Select Timeline</option>
+                        <option value="24-hours">24 Hours (Rush)</option>
+                        <option value="2-3-days">2-3 Days</option>
+                        <option value="1-week">1 Week</option>
+                        <option value="flexible">Flexible</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Project Details *</label>
+                    <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, vision, and any specific requirements..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Project Details</button>
+                <p class="form-note">I'll respond within 2-4 hours with a detailed quote and timeline.</p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="social-links">
+            <a href="#" class="social-link">📧</a>
+            <a href="#" class="social-link">📱</a>
+            <a href="#" class="social-link">💼</a>
+            <a href="#" class="social-link">🎬</a>
+        </div>
+        <p>&copy; 2024 Dev Vishwakarma. All rights reserved.</p>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <div class="scroll-top" id="scrollTop">↑</div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">×</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Custom cursor
+        const cursor = document.querySelector('.cursor');
+        const interactiveElements = document.querySelectorAll('a, button, .portfolio-item, .service-card');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Add cursor interaction for videos
+        document.querySelectorAll('video').forEach(video => {
+            video.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            video.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // Preloader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+            }, 2500);
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            const scrollTop = document.getElementById('scrollTop');
+            
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            if (window.scrollY > 200) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Scroll to top
+        document.getElementById('scrollTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Particles animation
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particles.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                    
+                    // Animate counters
+                    if (entry.target.classList.contains('about-text')) {
+                        animateCounters();
+                    }
+                    
+                    // Animate skill bars
+                    if (entry.target.id === 'skills') {
+                        animateSkillBars();
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements
+        document.querySelectorAll('.section-title, .profile-image, .about-text, .portfolio-item, .service-card, .form-group').forEach(el => {
+            observer.observe(el);
+        });
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Counter animation
+        function animateCounters() {
+            document.querySelectorAll('.stat-number').forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                const increment = target / 100;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        counter.textContent = Math.ceil(current);
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = target;
+                    }
+                };
+                updateCounter();
+            });
+        }
+
+        // Skill bars animation
+        function animateSkillBars() {
+            document.querySelectorAll('.skill-progress').forEach(bar => {
+                const width = bar.getAttribute('data-width');
+                setTimeout(() => {
+                    bar.style.width = width + '%';
+                }, 200);
+            });
+        }
+
+        // Portfolio filter
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.getAttribute('data-filter');
+                const items = document.querySelectorAll('.portfolio-item');
+                
+                items.forEach(item => {
+                    if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                        item.style.display = 'block';
+                        setTimeout(() => {
+                            item.classList.add('animate');
+                        }, 100);
+                    } else {
+                        item.classList.remove('animate');
+                        setTimeout(() => {
+                            item.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+
+        // Portfolio video hover effects
+        let currentPlayingVideo = null;
+        
+        document.querySelectorAll('.portfolio-item').forEach(item => {
+            const video = item.querySelector('video');
+            
+            item.addEventListener('mouseenter', () => {
+                if (video) {
+                    // Pause any currently playing video
+                    if (currentPlayingVideo && currentPlayingVideo !== video) {
+                        currentPlayingVideo.pause();
+                        currentPlayingVideo.currentTime = 0;
+                    }
+                    video.play();
+                    currentPlayingVideo = video;
+                }
+            });
+            
+            item.addEventListener('mouseleave', () => {
+                if (video) {
+                    video.pause();
+                    video.currentTime = 0;
+                    if (currentPlayingVideo === video) {
+                        currentPlayingVideo = null;
+                    }
+                }
+            });
+            
+            item.addEventListener('click', () => {
+                // Pause all videos when opening modal
+                document.querySelectorAll('.portfolio-item video').forEach(v => {
+                    v.pause();
+                    v.currentTime = 0;
+                });
+                currentPlayingVideo = null;
+                
+                const modal = document.getElementById('modal');
+                const modalBody = document.getElementById('modalBody');
+                const title = item.querySelector('.portfolio-title').textContent;
+                const videoSrc = video ? video.querySelector('source').src : '';
+                
+                modalBody.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem;">
+                        <h3 style="color: var(--gold); margin-bottom: 1rem; text-align: center;">${title}</h3>
+                        ${videoSrc ? `
+                            <video controls controlsList="nodownload" style="width: 350px; height: 622px; border-radius: 15px; object-fit: cover; display: block; margin: 0 auto;">
+                                <source src="${videoSrc}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        ` : `
+                            <div style="width: 350px; height: 622px; background: #1a1a1a; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <div style="font-size: 4rem;">🎬</div>
+                            </div>
+                        `}
+                    </div>
+                `;
+                modal.classList.add('active');
+            });
+        });
+
+        // Close modal functionality removed - click outside to close
+
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                document.getElementById('modal').classList.remove('active');
+                // Pause modal video when closing
+                const modalVideo = document.querySelector('#modal video');
+                if (modalVideo) {
+                    modalVideo.pause();
+                    modalVideo.currentTime = 0;
+                }
+            }
+        });
+
+        // Pause all videos when scrolling
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            // Pause all portfolio videos when scrolling
+            if (currentPlayingVideo) {
+                currentPlayingVideo.pause();
+                currentPlayingVideo.currentTime = 0;
+                currentPlayingVideo = null;
+            }
+            
+            // Clear existing timeout
+            clearTimeout(scrollTimeout);
+            
+            // Set timeout to resume video behavior after scrolling stops
+            scrollTimeout = setTimeout(() => {
+                // Scrolling has stopped - videos can play on hover again
+            }, 150);
+        });
+
+        // Pause videos when page loses focus
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Page is hidden, pause all videos
+                document.querySelectorAll('video').forEach(video => {
+                    video.pause();
+                });
+                currentPlayingVideo = null;
+            }
+        });
+
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Sending...';
+            submitBtn.style.background = '#00BFA6';
+            
+            // Simulate form submission
+            setTimeout(() => {
+                submitBtn.textContent = 'Message Sent!';
+                setTimeout(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.style.background = 'var(--gold)';
+                    document.getElementById('contactForm').reset();
+                }, 2000);
+            }, 1500);
+        });
+
+        // Form validation with shake animation
+        document.querySelectorAll('input[required], textarea[required]').forEach(field => {
+            field.addEventListener('blur', () => {
+                if (!field.value.trim()) {
+                    field.style.animation = 'shake 0.5s ease-in-out';
+                    field.style.borderColor = '#ff4444';
+                    setTimeout(() => {
+                        field.style.animation = '';
+                        field.style.borderColor = '#333';
+                    }, 500);
+                }
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Testimonials Carousel
+        let currentTestimonial = 0;
+        const testimonials = document.querySelectorAll('.testimonial');
+        const navDots = document.querySelectorAll('.nav-dot');
+
+        function showTestimonial(index) {
+            testimonials.forEach((testimonial, i) => {
+                testimonial.classList.toggle('active', i === index);
+            });
+            navDots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        navDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentTestimonial = index;
+                showTestimonial(currentTestimonial);
+            });
+        });
+
+        // Auto-rotate testimonials
+        setInterval(() => {
+            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+            showTestimonial(currentTestimonial);
+        }, 5000);
+
+        // Enhanced form validation
+        const form = document.getElementById('contactForm');
+        const requiredFields = form.querySelectorAll('[required]');
+
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', validateField);
+            field.addEventListener('input', clearError);
+        });
+
+        function validateField(e) {
+            const field = e.target;
+            const value = field.value.trim();
+            
+            if (!value) {
+                showFieldError(field, 'This field is required');
+            } else if (field.type === 'email' && !isValidEmail(value)) {
+                showFieldError(field, 'Please enter a valid email address');
+            }
+        }
+
+        function clearError(e) {
+            const field = e.target;
+            field.style.borderColor = '#333';
+            field.style.animation = '';
+            
+            // Remove error message if exists
+            const errorMsg = field.parentNode.querySelector('.error-message');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+
+        function showFieldError(field, message) {
+            field.style.animation = 'shake 0.5s ease-in-out';
+            field.style.borderColor = '#ff4444';
+            
+            // Remove existing error message
+            const existingError = field.parentNode.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add new error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.color = '#ff4444';
+            errorDiv.style.fontSize = '0.8rem';
+            errorDiv.style.marginTop = '0.25rem';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                field.style.animation = '';
+            }, 500);
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Add shake animation to CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e524fb851c47ea',t:'MTc1NTA1NTkzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
